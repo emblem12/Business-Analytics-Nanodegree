@@ -1,0 +1,92 @@
+#Q1 How much did artistes in the top 5 receive in earnings?
+
+SELECT 
+    ar.Name, SUM(il.UnitPrice * il.Quantity) AS artiste_earnings
+FROM
+    Invoice AS i
+        JOIN
+    InvoiceLine AS il ON il.InvoiceId = i.InvoiceId
+        JOIN
+    Track AS t ON t.TrackId = il.TrackId
+        JOIN
+    Album AS al ON t.AlbumId = al.AlbumId
+        JOIN
+    Artist AS ar ON al.ArtistId = ar.ArtistId
+GROUP BY ar.ArtistId
+ORDER BY artiste_earnings DESC
+LIMIT 5;
+
+
+
+
+#Q2 Which agents made the most sales over time?
+
+SELECT 
+    STRFTIME('%Y-%m', e.hiredate) AS date_of_hire,
+    e.firstname || ' ' || e.lastname AS representative,
+    COUNT(i.invoiceid) AS sales_made,
+    ROUND(SUM(i.total), 2) AS sales_amount
+FROM
+    employee e
+        JOIN
+    customer c ON c.supportrepid = e.employeeid
+        JOIN
+    invoice i ON i.customerid = c.customerid
+WHERE
+    title = 'Sales Support Agent'
+GROUP BY 1 , 2;
+
+
+
+
+#Q3 Which top 10 genres made the most sales percentage-wise?
+
+SELECT 
+    name,
+    sales_made,
+    ROUND((sales_made / (SELECT 
+                    SUM(total)
+                FROM
+                    Invoice)) * 100,
+            1) AS percentage_sales
+FROM
+    (SELECT 
+        g.Name, SUM(il.UnitPrice * il.Quantity) AS sales_made
+    FROM
+        InvoiceLine il
+    JOIN Track t ON il.TrackId = t.TrackId
+    JOIN Genre g ON g.GenreId = t.GenreId
+    GROUP BY 1) sub
+ORDER BY 3 DESC
+LIMIT 10;
+
+
+
+
+#Q4 Which top 10 countries made the most number and purchases of tracks?
+
+SELECT 
+    i.billingcountry AS country,
+    SUM(il.unitprice * il.quantity) AS sales_made,
+    COUNT(t.trackid) AS number_of_tracks
+FROM
+    Invoice i
+        JOIN
+    InvoiceLine il ON i.invoiceid = il.invoiceid
+        JOIN
+    track t ON t.trackid = iL.trackid
+GROUP BY i.billingcountry
+ORDER BY sales_made DESC
+LIMIT 10;
+
+
+
+
+
+
+
+
+
+
+
+
